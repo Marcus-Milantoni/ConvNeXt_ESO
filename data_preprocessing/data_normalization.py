@@ -1,7 +1,8 @@
 import os 
 import numpy as np
+from tqdm import tqdm
 
-patient_numpy_paths = r""
+patient_numpy_paths = r"D:\Marcus\ESO_DL_DATA\npy_model_in"
 
 
 def data_standardization(npy_array: np.ndarray) -> np.ndarray:
@@ -28,12 +29,18 @@ def main(patient_numpy_paths: str):
     Parameters:
     patient_numpy_paths (str): Path to the directory containing patient numpy files.
     """
-    for patient_id in os.listdir(patient_numpy_paths):
+    for patient_id in tqdm(os.listdir(patient_numpy_paths)):
         patient_path = os.path.join(patient_numpy_paths, patient_id)
-        for npy_file in os.listdir(patient_path):
+        if not os.path.isdir(patient_path):
+            continue
+        
+        for npy_file in tqdm(os.listdir(patient_path)):
             if npy_file.endswith('.npy'):
                 npy_file_path = os.path.join(patient_path, npy_file)
                 npy_array = np.load(npy_file_path)
                 standardized_array = data_standardization(npy_array)
                 # Save the standardized array back to the file
                 np.save(npy_file_path, standardized_array)
+
+
+main(patient_numpy_paths=patient_numpy_paths)
