@@ -13,8 +13,8 @@ import os
 
 train_csv = r"C:\Users\milantom\OneDrive - LHSC & St. Joseph's\Documents\Eso_deep_learning\csv_files\train_paths.csv"
 val_csv = r"C:\Users\milantom\OneDrive - LHSC & St. Joseph's\Documents\Eso_deep_learning\csv_files\val_paths.csv"
-log_path = r""
-model_save_path = r""
+log_path = r"D:\Marcus\ESO_DL_model\DL_model_logs\ConvNeXt_Tiny"
+model_save_path = r"D:\Marcus\ESO_DL_model\Model_saves\ConvNeXt_Tiny"
 
 train_df = pd.read_csv(train_csv).set_index('ID')
 val_df = pd.read_csv(val_csv).set_index('ID')
@@ -31,8 +31,9 @@ def main():
     validation_loader = DataLoader(validation_set, batch_size=8, shuffle=False, num_workers=4)
 
     model = convNeXt_tiny_ESO(num_classes=2, in_channels=2).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, betas=(0.9, 0.999))
     loss_function = torch.nn.BCELoss()
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
 
     num_epochs = 500
@@ -66,6 +67,8 @@ def main():
         writer.add_scalar("AUC/val", val_auc, epoch)
         writer.add_pr_curve("Validation Precision-Recall", val_outcomes, val_outputs, epoch)
 
+
+        # Save the best model based on validation loss
         if val_loss < best_v_loss:
             best_v_loss = val_loss
             torch.save(model.state_dict(), os.path.join(model_save_path, "best_val_loss.pth"))
@@ -73,4 +76,7 @@ def main():
         # Save the model every 5 epochs
         if epoch % 5 == 0:
             torch.save(model.state_dict(), os.path.join(model_save_path, f"model_epoch_{epoch}.pth"))
+    
+    writer.close()
 
+main()

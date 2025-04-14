@@ -1,10 +1,10 @@
 import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
-from ..ops.misc import Permute, Conv3dNormActivation
-from ..ops.stochastic_depth import StochasticDepth
-from ._api import register_model, WeightsEnum
-from ._utils import _ovewrite_named_params
+from torch.ops.misc import Permute, Conv3dNormActivation
+from torch.ops.stochastic_depth import StochasticDepth
+from torch._api import register_model, WeightsEnum
+from torch._utils import _ovewrite_named_params
 
 from typing import Callable, Optional, Any, List, Sequence
 from functools import partial
