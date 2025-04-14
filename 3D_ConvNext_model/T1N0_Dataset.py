@@ -3,24 +3,22 @@ from torch.utils.data import Dataset
 from torchvision.transforms import v2
 import numpy as np
 import os
+import pandas as pd
 
 
 
 class Eso_T1N0_Dataset(Dataset):
     "Esophagus dataset for classification of T1N0 cancers in medical images (PET/CT)"
 
-    def __init__ (self, patient_IDs, outcomes, root_dir, transform=None):
+    def __init__ (self, dataframe: pd.DataFrame, transform=None):
         """
         Args:
-            patient_IDs (list): List of patient IDs to be included in the dataset.
-            outcomes (list): List of outcomes for each patient ID.
-            root_dir (string): Directory with all the images and contours (PET, CT, segmentation).
+            dataframe (pd.DataFrame): DataFrame containing patient IDs and outcomes.
             transform (callable, optional): Optional transform to be applied on a sample.
         """
 
-        self.patient_IDs = patient_IDs
-        self.root_dir = root_dir
-        self.outcomes = outcomes
+        self.df = dataframe
+        self.patient_IDs = pd.Index(self.df).to_list()
         self.transform = transform
 
     def __len__(self):
@@ -31,18 +29,16 @@ class Eso_T1N0_Dataset(Dataset):
             idx = idx.tolist()
 
         patient_ID = self.patient_IDs[idx]
-        PET_npy = np.load(os.path.join(self.root_dir, patient_ID , "PET.npy"))
-        CT_npy = np.load(os.path.join(self.root_dir, patient_ID , "CT.npy"))
-        Segmentation_npy = np.load(os.path.join(self.root_dir, patient_ID , "segmentation.npy")).astype(np.float32)
-        outcome = np.array(self.outcomes[idx]).astype(np.float32)
+        PET_npy = np.load(self.df[patient_ID]['PET']).astype(np.float16)
+        CT_npy = np.load(self.df[patient_ID]['CT']).astype(np.float16)
+        outcome = np.array(self.df[patient_ID]['Outcome']).astype(np.float16)
 
         stack = torch.stack((
                 torch.from_numpy(PET_npy),
                 torch.from_numpy(CT_npy),
-                torch.from_numpy(Segmentation_npy)
             ))
 
-        return {"Data": stack, "outcome": torch.tensor(outcome)}
+        return {"Data": stack, "Outcome": torch.tensor(outcome)}
     
 
 
