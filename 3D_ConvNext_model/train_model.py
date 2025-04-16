@@ -31,9 +31,9 @@ def main():
     validation_loader = DataLoader(validation_set, batch_size=8, shuffle=False, num_workers=4)
 
     model = convNeXt_tiny_ESO(num_classes=2, in_channels=2).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, betas=(0.9, 0.999))
+    optimizer = torch.optim.AdamW(model.parameters(), lr=4e-3, betas=(0.9, 0.999))
     loss_function = torch.nn.BCELoss()
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=300)
 
 
     num_epochs = 500
@@ -76,6 +76,8 @@ def main():
         # Save the model every 5 epochs
         if epoch % 5 == 0:
             torch.save(model.state_dict(), os.path.join(model_save_path, f"model_epoch_{epoch}.pth"))
+
+        scheduler.step()
     
     writer.close()
 
